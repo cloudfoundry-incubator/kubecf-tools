@@ -29,13 +29,9 @@ describe Versioning do
 
   describe '.short_git_sha' do
     it 'returns first 8 git sha1 characters' do
-      Dir.mktmpdir do |dir|
-        Dir.chdir(dir) do
-          create_git_dir_with_tag('v0.0.1')
-          git_sha=`git rev-parse HEAD`
-          expect(Versioning.short_git_sha).to eq(git_sha[0..7])
-        end
-      end
+      create_git_dir_with_tag('v0.0.1')
+      git_sha=`git rev-parse HEAD`
+      expect(Versioning.short_git_sha).to eq(git_sha[0..7])
     end
   end
 
