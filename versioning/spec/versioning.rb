@@ -144,7 +144,7 @@ describe Versioning do
     context 'with no commit since the latest semver tag' do
       it 'returns 0' do
         create_git_dir_with_tag('v0.0.1')
-        expect(Versioning.number_of_commits_since_tag).to eq('0')
+        expect(Versioning.number_of_commits_since_tag).to eq(0)
       end
     end
 
@@ -152,7 +152,7 @@ describe Versioning do
       it 'returns 1' do
         create_git_dir_with_tag('v0.0.1')
         create_commit('test')
-        expect(Versioning.number_of_commits_since_tag).to eq('1')
+        expect(Versioning.number_of_commits_since_tag).to eq(1)
       end
     end
 
@@ -161,14 +161,14 @@ describe Versioning do
         create_git_dir_with_tag('v0.0.1')
         create_commit('test')
         create_commit('test2')
-        expect(Versioning.number_of_commits_since_tag).to eq('2')
+        expect(Versioning.number_of_commits_since_tag).to eq(2)
       end
 
       it 'ignores non semver tags' do
         create_git_dir_with_tag('v0.0.1')
         create_commit('test')
         create_dummy_commit_and_tag('non_semver_tag')
-        expect(Versioning.number_of_commits_since_tag).to eq('2')
+        expect(Versioning.number_of_commits_since_tag).to eq(2)
       end
     end
   end

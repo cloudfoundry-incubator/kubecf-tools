@@ -34,7 +34,7 @@ class Versioning
     end
 
     def number_of_commits_since_tag
-      `git rev-list #{latest_semver_tag}..HEAD --count`.strip
+      `git rev-list #{latest_semver_tag}..HEAD --count`.strip.to_i
     end
 
     def current_version
