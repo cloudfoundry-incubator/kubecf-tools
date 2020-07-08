@@ -21,7 +21,7 @@ class Versioning
       end
     end
 
-    def short_git_sha
+    def latest_short_git_sha
       `git rev-parse --short=8 HEAD`.strip
     end
 
@@ -39,7 +39,7 @@ class Versioning
 
     def current_version
       if number_of_commits_since_tag > 0
-        "#{latest_semver}-#{number_of_commits_since_tag}.g#{short_git_sha}"
+        "#{latest_semver}-#{number_of_commits_since_tag}.g#{latest_short_git_sha}"
       else
         latest_semver
       end
