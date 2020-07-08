@@ -38,7 +38,11 @@ class Versioning
     end
 
     def current_version
-      "#{latest_semver}-#{number_of_commits_since_tag}.g#{short_git_sha}"
+      if number_of_commits_since_tag > 0
+        "#{latest_semver}-#{number_of_commits_since_tag}.g#{short_git_sha}"
+      else
+        latest_semver
+      end
     end
 
     private

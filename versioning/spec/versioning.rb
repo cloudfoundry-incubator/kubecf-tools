@@ -174,11 +174,18 @@ describe Versioning do
   end
 
   describe '.current_version' do
-    context 'with one commit since the tag v1.0.2' do
-      it 'returns 1.0.2-1.g<short_hash>' do
+    context 'with newer commits since the latest semver tag v1.0.2' do
+      it 'returns the pre-release version `1.0.2-1.g<short_hash>`' do
         create_git_dir_with_tag('v1.0.2')
         create_commit('test')
         expect(Versioning.current_version).to match(/^1.0.2-1\.g\h{8}$/)
+      end
+    end
+
+    context 'with no new commits since the latest semver tag v1.0.2' do
+      it 'returns the release version `1.0.2`' do
+        create_git_dir_with_tag('v1.0.2')
+        expect(Versioning.current_version).to match(/^1.0.2$/)
       end
     end
   end
