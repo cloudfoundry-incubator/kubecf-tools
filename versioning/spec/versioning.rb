@@ -52,13 +52,9 @@ describe Versioning do
 
     context 'when current is not a git dir' do
       it 'raises an error' do
-        Dir.mktmpdir do |dir|
-          Dir.chdir(dir) do
-            expect {
-              Versioning.verify_git!
-            }.to raise_error(StandardError, /The current directory `#{dir}` is not a git tree!/)
-          end
-        end
+        expect {
+          Versioning.verify_git!
+        }.to raise_error(StandardError, /The current directory `#{Dir.getwd}` is not a git tree!/)
       end
     end
 
