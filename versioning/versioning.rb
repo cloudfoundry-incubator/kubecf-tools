@@ -29,12 +29,6 @@ class Versioning
 
     private
 
-    def git_semver_tag_exists?
-      `git tag`.split.any? do |tag|
-        tag =~ GIT_SEMVER_REGEX
-      end
-    end
-
     def git_dir?
       system('git rev-parse --is-inside-work-tree', [:out, :err] => File::NULL)
     end
