@@ -14,9 +14,9 @@ describe Versioning do
     `git tag #{tag}`
   end
 
-  def create_dummy_commit_and_tag(tag)
-    create_commit(tag)
-    `git tag #{tag}`
+  def create_uncomitted_changes(file)
+    File.write(file, 'Dummy content')
+    `git add #{file}`
   end
 
   around(:each) do |example|
@@ -24,14 +24,6 @@ describe Versioning do
       Dir.chdir(dir) do
         example.run
       end
-    end
-  end
-
-  describe '.latest_short_git_sha' do
-    it 'returns first 8 git sha1 characters' do
-      create_git_dir_with_tag('v0.0.1')
-      git_sha=`git rev-parse HEAD`
-      expect(Versioning.latest_short_git_sha).to eq(git_sha[0..7])
     end
   end
 
@@ -93,99 +85,43 @@ describe Versioning do
     end
   end
 
-  describe '.latest_semver_tag' do
-    context 'when only one semver tag exists' do
-      it 'returns the highest semver tag' do
-        create_git_dir_with_tag('v0.0.1')
-        git_sha=`git rev-parse HEAD`
-        expect(Versioning.latest_semver_tag).to eq('v0.0.1')
-      end
-    end
-
-    context 'when two semver tags exist' do
-      it 'returns the highest semver tag' do
-        create_git_dir_with_tag('v0.0.1')
-        create_dummy_commit_and_tag('v0.0.2')
-        git_sha=`git rev-parse HEAD`
-        expect(Versioning.latest_semver_tag).to eq('v0.0.2')
-      end
-    end
-
-    context 'when two semver tags exists and a non-semver-tag is the latest' do
-      it 'returns the highest semver tag' do
-        create_git_dir_with_tag('v0.0.1')
-        create_dummy_commit_and_tag('v0.0.2')
-        create_dummy_commit_and_tag('vnon_semver_tag')
-        git_sha=`git rev-parse HEAD`
-        expect(Versioning.latest_semver_tag).to eq('v0.0.2')
-      end
-    end
-  end
-
-  describe '.latest_semver' do
-    context 'when the semver tag has a `v` in front' do
-      it 'is ignored' do
-        create_git_dir_with_tag('v0.0.1')
-        git_sha=`git rev-parse HEAD`
-        expect(Versioning.latest_semver).to eq('0.0.1')
-      end
-    end
-
-    context 'when the semver tag has no `v` in front' do
-      it 'returns the same value as `last_semver_tag`' do
-        create_git_dir_with_tag('0.0.1')
-        git_sha=`git rev-parse HEAD`
-        expect(Versioning.latest_semver).to eq(Versioning.latest_semver_tag)
-      end
-    end
-  end
-
-  describe '.number_of_commits_since_tag' do
-    context 'with no commit since the latest semver tag' do
-      it 'returns 0' do
-        create_git_dir_with_tag('v0.0.1')
-        expect(Versioning.number_of_commits_since_tag).to eq(0)
-      end
-    end
-
-    context 'with one commit since the latest semver tag' do
-      it 'returns 1' do
-        create_git_dir_with_tag('v0.0.1')
-        create_commit('test')
-        expect(Versioning.number_of_commits_since_tag).to eq(1)
-      end
-    end
-
-    context 'with two commit since the latest semver tag' do
-      it 'returns 2' do
-        create_git_dir_with_tag('v0.0.1')
-        create_commit('test')
-        create_commit('test2')
-        expect(Versioning.number_of_commits_since_tag).to eq(2)
-      end
-
-      it 'ignores non semver tags' do
-        create_git_dir_with_tag('v0.0.1')
-        create_commit('test')
-        create_dummy_commit_and_tag('non_semver_tag')
-        expect(Versioning.number_of_commits_since_tag).to eq(2)
-      end
-    end
-  end
-
   describe '.current_version' do
     context 'with newer commits since the latest semver tag v1.0.2' do
-      it 'returns the pre-release version `1.0.2-1.g<short_hash>`' do
+      before(:each) do
         create_git_dir_with_tag('v1.0.2')
         create_commit('test')
-        expect(Versioning.current_version).to match(/^1.0.2-1\.g\h{8}$/)
+      end
+
+      context 'when there are no uncommitted changes' do
+        it 'returns the pre-release version `1.0.2-1.g<short_hash>`' do
+          expect(Versioning.current_version).to match(/^1.0.2-1\-g\h{8}$/)
+        end
+      end
+
+      context 'when there are uncommitted changes' do
+        it 'returns the pre-release version `1.0.2-1.g<short_hash>`' do
+          create_uncomitted_changes('tracked_file')
+          expect(Versioning.current_version).to match(/^1.0.2-1\-g\h{8}-dirty$/)
+        end
       end
     end
 
     context 'with no new commits since the latest semver tag v1.0.2' do
-      it 'returns the release version `1.0.2`' do
+      before(:each) do
         create_git_dir_with_tag('v1.0.2')
-        expect(Versioning.current_version).to match(/^1.0.2$/)
+      end
+
+      context 'when there are no uncommitted changes' do
+        it 'returns just the release version' do
+          expect(Versioning.current_version).to match(/^1.0.2$/)
+        end
+      end
+
+      context 'when there are uncommitted changes' do
+        it 'returns the release version with a dirty tag' do
+          create_uncomitted_changes('tracked_file')
+          expect(Versioning.current_version).to match(/^1.0.2-dirty$/)
+        end
       end
     end
   end

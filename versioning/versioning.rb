@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+GIT_VERSION_COMMAND='git describe --tags --abbrev=8 --dirty 2> /dev/null'
 # Based on https://semver.org/#semantic-versioning-200 but allows `v` in front to match git tags
 GIT_SEMVER_REGEX=/^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
@@ -16,33 +17,14 @@ class Versioning
     end
 
     def verify_semver_tags!
-      unless git_semver_tag_exists?
+      unless `#{GIT_VERSION_COMMAND}`.strip =~ GIT_SEMVER_REGEX
         raise('A git tag with an semantic version is required!')
       end
     end
 
-    def latest_short_git_sha
-      `git rev-parse --short=8 HEAD`.strip
-    end
-
-    def latest_semver_tag
-      `git tag -l --sort=v:refname`.split.select{|i| i[GIT_SEMVER_REGEX] }.last
-    end
-
-    def latest_semver
-      latest_semver_tag.gsub(/^v?(.*)$/, '\1')
-    end
-
-    def number_of_commits_since_tag
-      `git rev-list #{latest_semver_tag}..HEAD --count`.strip.to_i
-    end
-
     def current_version
-      if number_of_commits_since_tag > 0
-        "#{latest_semver}-#{number_of_commits_since_tag}.g#{latest_short_git_sha}"
-      else
-        latest_semver
-      end
+      version=`#{GIT_VERSION_COMMAND}`.strip
+      version.gsub(/^v?(.*)$/, '\1')
     end
 
     private
