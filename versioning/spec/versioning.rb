@@ -86,27 +86,36 @@ describe Versioning do
   end
 
   describe '.current_version' do
-    context 'with newer commits since the latest semver tag v1.0.2' do
+    context 'with newer commits since the latest semver tag' do
       before(:each) do
         create_git_dir_with_tag('v1.0.2')
         create_commit('test')
       end
 
       context 'when there are no uncommitted changes' do
-        it 'returns the pre-release version `1.0.2-1.g<short_hash>`' do
+        it 'returns a pre-release version without a dirty tag' do
           expect(Versioning.current_version).to match(/^1.0.2-1\-g\h{8}$/)
         end
       end
 
       context 'when there are uncommitted changes' do
-        it 'returns the pre-release version `1.0.2-1.g<short_hash>`' do
-          create_uncomitted_changes('tracked_file')
-          expect(Versioning.current_version).to match(/^1.0.2-1\-g\h{8}-dirty$/)
+        context 'in files tracked by git' do
+          it 'returns a pre-release version with a dirty tag' do
+            create_uncomitted_changes('tracked_file')
+            expect(Versioning.current_version).to match(/^1.0.2-1\-g\h{8}-dirty$/)
+          end
+        end
+
+        context 'in files not tracked by git' do
+          it 'returns a pre-release version without a dirty tag' do
+            File.write('some_untracked_file', 'Dummy content')
+            expect(Versioning.current_version).to match(/^1.0.2-1\-g\h{8}$/)
+          end
         end
       end
     end
 
-    context 'with no new commits since the latest semver tag v1.0.2' do
+    context 'with no new commits since the latest semver tag' do
       before(:each) do
         create_git_dir_with_tag('v1.0.2')
       end
