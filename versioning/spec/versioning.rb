@@ -8,6 +8,11 @@ describe Versioning do
     `git commit --no-gpg-sign --message Dummy #{file_name}`
   end
 
+  def create_commit_and_tag(tag)
+    create_commit(tag)
+    `git tag #{tag}`
+  end
+
   def create_git_dir_with_tag(tag)
     `git init`
     create_commit(tag)
@@ -26,14 +31,14 @@ describe Versioning do
       end
     end
   end
-
-  describe '.verify_git!' do
-    # Assuming that git is always there when running rspec
+  
+  describe '.current_version' do
     context 'when git does not exist' do
       it 'raises an error' do
+        # Assuming that git is always there when running rspec
         allow(File).to receive(:executable?).and_return(false)
         expect {
-          Versioning.verify_git!
+          Versioning.current_version
         }.to raise_error(StandardError, /The command `git` does not exist!/)
       end
     end
@@ -41,36 +46,34 @@ describe Versioning do
     context 'when current dir is not a git work tree' do
       it 'raises an error' do
         expect {
-          Versioning.verify_git!
+          Versioning.current_version
         }.to raise_error(StandardError, /The current directory `#{Dir.getwd}` is not a git work tree!/)
       end
     end
 
     context 'when current dir is a git work tree"' do
       it 'does not raise' do
-        `git init`
+        create_git_dir_with_tag('v0.0.1')
         expect {
-          Versioning.verify_git!
+          Versioning.current_version
         }.to_not raise_error
       end
     end
-  end
-
-  describe '.verify_semver_tags!' do
-    context 'when semver tag exists' do
+    
+    context 'when the latest tag is a semver version' do
       it 'does not raise an error' do
         create_git_dir_with_tag('v0.0.1')
         expect {
-          Versioning.verify_semver_tags!
+          Versioning.current_version
         }.not_to raise_error
       end
     end
 
-    context 'when no semver tag exists' do
+    context 'when the latest tag is a not a semver version' do
       it 'raises an error' do
         create_git_dir_with_tag('some_tag')
         expect {
-          Versioning.verify_semver_tags!
+          Versioning.current_version
         }.to raise_error(StandardError, /A git tag with an semantic version is required!/)
       end
     end
@@ -79,13 +82,11 @@ describe Versioning do
       it 'raises with the same error message' do
         `git init`
         expect {
-          Versioning.verify_semver_tags!
+          Versioning.current_version
         }.to raise_error(StandardError, /A git tag with an semantic version is required!/)
       end
     end
-  end
 
-  describe '.current_version' do
     context 'with newer commits since the latest semver tag' do
       before(:each) do
         create_git_dir_with_tag('v1.0.2')

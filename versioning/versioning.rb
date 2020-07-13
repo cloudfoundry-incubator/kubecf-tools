@@ -6,6 +6,15 @@ GIT_SEMVER_REGEX=/^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|
 
 class Versioning
   class << self
+    def current_version
+      verify_git!
+      verify_semver_tags!
+      version=`#{GIT_VERSION_COMMAND}`.strip
+      version.gsub(/^v?(.*)$/, '\1')
+    end
+
+    private
+
     def verify_git!
       unless git_exists?
         raise('The command `git` does not exist!')
@@ -15,19 +24,12 @@ class Versioning
         raise("The current directory `#{Dir.pwd}` is not a git work tree!")
       end
     end
-
+    
     def verify_semver_tags!
       unless `#{GIT_VERSION_COMMAND}`.strip =~ GIT_SEMVER_REGEX
         raise('A git tag with an semantic version is required!')
       end
     end
-
-    def current_version
-      version=`#{GIT_VERSION_COMMAND}`.strip
-      version.gsub(/^v?(.*)$/, '\1')
-    end
-
-    private
 
     def git_dir?
       system('git rev-parse --is-inside-work-tree', [:out, :err] => File::NULL)
@@ -43,7 +45,5 @@ end
 
 # Do not print version during rspec run
 if __FILE__ == $0
-  Versioning.verify_git!
-  Versioning.verify_semver_tags!
   puts Versioning.current_version
 end
