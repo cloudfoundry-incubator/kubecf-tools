@@ -12,7 +12,7 @@ class Versioning
       end
 
       unless git_dir?
-        raise("The current directory `#{Dir.pwd}` is not a git tree!")
+        raise("The current directory `#{Dir.pwd}` is not a git work tree!")
       end
     end
 

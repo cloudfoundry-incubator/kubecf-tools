@@ -38,15 +38,15 @@ describe Versioning do
       end
     end
 
-    context 'when current is not a git dir' do
+    context 'when current dir is not a git work tree' do
       it 'raises an error' do
         expect {
           Versioning.verify_git!
-        }.to raise_error(StandardError, /The current directory `#{Dir.getwd}` is not a git tree!/)
+        }.to raise_error(StandardError, /The current directory `#{Dir.getwd}` is not a git work tree!/)
       end
     end
 
-    context 'when current path is in a git dir' do
+    context 'when current dir is a git work tree"' do
       it 'does not raise' do
         `git init`
         expect {
