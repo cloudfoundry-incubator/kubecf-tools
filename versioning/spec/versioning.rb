@@ -60,7 +60,7 @@ describe Versioning do
       end
     end
     
-    context 'when the latest tag is a semver version' do
+    context 'when the current tag is a semver version' do
       it 'does not raise an error' do
         create_git_dir_with_tag('v0.0.1')
         expect {
@@ -69,7 +69,7 @@ describe Versioning do
       end
     end
 
-    context 'when the latest tag is a not a semver version' do
+    context 'when the current tag is a not a semver version' do
       it 'raises an error' do
         create_git_dir_with_tag('some_tag')
         expect {
@@ -87,7 +87,7 @@ describe Versioning do
       end
     end
 
-    context 'when the latest tag is a semver tag with a `+` element' do
+    context 'when the current tag is a semver tag with a `+` element' do
       it 'raise with an error that this not supported' do
         create_git_dir_with_tag('1.0.2+gold')
         expect {
@@ -96,14 +96,14 @@ describe Versioning do
       end
     end
 
-    context 'when the latest tag is a semver tag without a `v` in front' do
+    context 'when the current tag is a semver tag without a `v` in front' do
       it 'does not raise and returns the correct semver version' do
         create_git_dir_with_tag('1.0.2')
         expect(Versioning.current_version).to match(/^1.0.2$/)
       end
     end
 
-    context 'with newer commits since the latest semver tag' do
+    context 'with newer commits since the current semver tag' do
       before(:each) do
         create_git_dir_with_tag('v1.0.2')
         create_commit('test')
@@ -132,7 +132,7 @@ describe Versioning do
       end
     end
 
-    context 'with no new commits since the latest semver tag' do
+    context 'with no new commits since the current semver tag' do
       before(:each) do
         create_git_dir_with_tag('v1.0.2')
       end
