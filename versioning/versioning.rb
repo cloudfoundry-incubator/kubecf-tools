@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 
-GIT_VERSION_COMMAND='git describe --tags --abbrev=8 --dirty 2> /dev/null'
 # Based on https://semver.org/#semantic-versioning-200 but allows `v` in front to match git tags
 GIT_SEMVER_REGEX=/^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
@@ -8,8 +7,8 @@ class Versioning
   class << self
     def current_version
       verify_git!
-      verify_semver_tags!
-      version=`#{GIT_VERSION_COMMAND}`.strip
+      version=`git describe --tags --abbrev=8 --dirty 2> /dev/null`.strip
+      verify_semver_tags!(version)
       version.delete_prefix('v')
     end
 
@@ -25,8 +24,8 @@ class Versioning
       end
     end
     
-    def verify_semver_tags!
-      unless `#{GIT_VERSION_COMMAND}`.strip =~ GIT_SEMVER_REGEX
+    def verify_semver_tags!(version)
+      unless version =~ GIT_SEMVER_REGEX
         raise('A git tag with an semantic version is required!')
       end
     end
