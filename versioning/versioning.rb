@@ -10,7 +10,7 @@ class Versioning
       verify_git!
       verify_semver_tags!
       version=`#{GIT_VERSION_COMMAND}`.strip
-      version.gsub(/^v?(.*)$/, '\1')
+      version.delete_prefix('v')
     end
 
     private
