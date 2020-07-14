@@ -8,7 +8,7 @@ class Versioning
     def current_version
       verify_git!
       version=`git describe --tags --abbrev=8 --dirty 2> /dev/null`.strip
-      verify_semver_tags!(version)
+      verify_semver_tag!(version)
       version.delete_prefix('v')
     end
 
@@ -24,7 +24,7 @@ class Versioning
       end
     end
     
-    def verify_semver_tags!(version)
+    def verify_semver_tag!(version)
       unless version =~ GIT_SEMVER_REGEX
         if version.include?('+')
           raise('A git tag version including plus elements is not supported!')
