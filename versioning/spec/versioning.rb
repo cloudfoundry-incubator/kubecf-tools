@@ -87,6 +87,15 @@ describe Versioning do
       end
     end
 
+    context 'when the latest tag is a semver tag with a `+` element' do
+      it 'raise with an error that this not supported' do
+        create_git_dir_with_tag('1.0.2+gold')
+        expect {
+          Versioning.current_version
+        }.to raise_error(StandardError, /A git tag version including plus elements is not supported!/)
+      end
+    end
+
     context 'when the latest tag is a semver tag without a `v` in front' do
       it 'does not raise and returns the correct semver version' do
         create_git_dir_with_tag('1.0.2')

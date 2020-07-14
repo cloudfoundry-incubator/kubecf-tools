@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
-# Based on https://semver.org/#semantic-versioning-200 but allows `v` in front to match git tags
-GIT_SEMVER_REGEX=/^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+# Based on https://semver.org/#semantic-versioning-200 but we do support the common `v` prefix in front and do not allow plus elements like `1.0.0+gold`
+GIT_SEMVER_REGEX=/^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$/
 
 class Versioning
   class << self
@@ -26,7 +26,11 @@ class Versioning
     
     def verify_semver_tags!(version)
       unless version =~ GIT_SEMVER_REGEX
-        raise('A git tag with an semantic version is required!')
+        if version.include?('+')
+          raise('A git tag version including plus elements is not supported!')
+        else
+          raise('A git tag with an semantic version is required!')
+        end
       end
     end
 
