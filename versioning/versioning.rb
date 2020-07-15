@@ -9,7 +9,12 @@ class Versioning
       verify_git!
       version=`git describe --tags --abbrev=8 --dirty 2> /dev/null`.strip
       verify_semver_tag!(version)
-      version.delete_prefix('v')
+      version.delete_prefix!('v')
+      if pre_release_version?(version)
+        split_pre_release_identifiers(version)
+      else
+        version
+      end
     end
 
     private
@@ -41,6 +46,26 @@ class Versioning
     def git_exists?
       ENV['PATH'].split(File::PATH_SEPARATOR).any? do |directory|
         File.executable?(File.join(directory, 'git'))
+      end
+    end
+
+    def pre_release_version?(version)
+      version =~ /-g\h{8}(-dirty)?$/
+    end
+
+    def additional_pre_release_identifier?(version)
+      # For example `v2.4.0-alpha-5-gcbc89373-dirty` has the pre-release
+      # identifier `alpha` while `v2.4.0-5-gcbc89373-dirty` has none
+      version =~ /^[\d.]+-[\w.]+-\d+-g\h{8}(-dirty)?$/
+    end
+
+    def split_pre_release_identifiers(version)
+      if additional_pre_release_identifier?(version)
+        # e.g. v2.4.0-alpha.1-5-gcbc89373-dirty -> v2.4.0-alpha.1.5.gcbc89373-dirty
+        version.gsub(/^([\d.]+)-(.*)-(\d+)-(g\h{8}(-dirty)?)$/, '\1-\2.\3.\4')
+      else
+        # e.g. v2.4.0-5-gcbc89373-dirty -> v2.4.0-5.gcbc89373-dirty
+        version.gsub(/^(.*)-(\d+)-(g\h{8}(-dirty)?)$/, '\1-\2.\3')
       end
     end
   end
