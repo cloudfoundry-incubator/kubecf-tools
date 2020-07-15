@@ -54,8 +54,9 @@ class Versioning
     end
 
     def additional_pre_release_identifier?(version)
-      # For example `v2.4.0-alpha-5-gcbc89373-dirty` has the pre-release
-      # identifier `alpha` while `v2.4.0-5-gcbc89373-dirty` has none
+      # For example `v2.4.0-alpha-5-gcbc89373-dirty` has the additional
+      # pre-release identifier `alpha` while `v2.4.0-5-gcbc89373-dirty`
+      # has only the default git pre-release identifiers
       version =~ /^[\d.]+-[\w.]+-\d+-g\h{8}(-dirty)?$/
     end
 
