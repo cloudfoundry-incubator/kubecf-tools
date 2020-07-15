@@ -104,29 +104,60 @@ describe Versioning do
     end
 
     context 'with newer commits since the current semver tag' do
-      before(:each) do
-        create_git_dir_with_tag('v1.0.2')
-        create_commit('test')
-      end
-
-      context 'when there are no uncommitted changes' do
-        it 'returns a pre-release version without a dirty tag' do
-          expect(Versioning.current_version).to match(/^1\.0\.2-1-g\h{8}$/)
+      context 'and a release version' do
+        before(:each) do
+          create_git_dir_with_tag('v1.0.2')
+          create_commit('test')
         end
-      end
 
-      context 'when there are uncommitted changes' do
-        context 'in files tracked by git' do
-          it 'returns a pre-release version with a dirty tag' do
-            create_uncomitted_changes('tracked_file')
-            expect(Versioning.current_version).to match(/^1\.0\.2-1-g\h{8}-dirty$/)
+        context 'when there are no uncommitted changes' do
+          it 'returns a pre-release version without a dirty tag' do
+            expect(Versioning.current_version).to match(/^1\.0\.2-1-g\h{8}$/)
           end
         end
 
-        context 'in files not tracked by git' do
+        context 'when there are uncommitted changes' do
+          context 'in files tracked by git' do
+            it 'returns a pre-release version with a dirty tag' do
+              create_uncomitted_changes('tracked_file')
+              expect(Versioning.current_version).to match(/^1\.0\.2-1-g\h{8}-dirty$/)
+            end
+          end
+
+          context 'in files not tracked by git' do
+            it 'returns a pre-release version without a dirty tag' do
+              File.write('some_untracked_file', 'Dummy content')
+              expect(Versioning.current_version).to match(/^1\.0\.2-1-g\h{8}$/)
+            end
+          end
+        end
+      end
+
+      context 'and an alpha version' do
+        before(:each) do
+          create_git_dir_with_tag('v2.4.0-alpha.suse')
+          create_commit('test')
+        end
+
+        context 'when there are no uncommitted changes' do
           it 'returns a pre-release version without a dirty tag' do
-            File.write('some_untracked_file', 'Dummy content')
-            expect(Versioning.current_version).to match(/^1\.0\.2-1-g\h{8}$/)
+            expect(Versioning.current_version).to match(/^2\.4\.0-alpha\.suse-1-g\h{8}$/)
+          end
+        end
+
+        context 'when there are uncommitted changes' do
+          context 'in files tracked by git' do
+            it 'returns a pre-release version with a dirty tag' do
+              create_uncomitted_changes('tracked_file')
+              expect(Versioning.current_version).to match(/^2\.4\.0-alpha\.suse-1-g\h{8}-dirty$/)
+            end
+          end
+
+          context 'in files not tracked by git' do
+            it 'returns a pre-release version without a dirty tag' do
+              File.write('some_untracked_file', 'Dummy content')
+              expect(Versioning.current_version).to match(/^2\.4\.0-alpha\.suse-1-g\h{8}$/)
+            end
           end
         end
       end
