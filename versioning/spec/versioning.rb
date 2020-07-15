@@ -99,7 +99,7 @@ describe Versioning do
     context 'when the current tag is a semver tag without a `v` in front' do
       it 'does not raise and returns the correct semver version' do
         create_git_dir_with_tag('1.0.2')
-        expect(Versioning.current_version).to match(/^1.0.2$/)
+        expect(Versioning.current_version).to match(/^1\.0\.2$/)
       end
     end
 
@@ -111,7 +111,7 @@ describe Versioning do
 
       context 'when there are no uncommitted changes' do
         it 'returns a pre-release version without a dirty tag' do
-          expect(Versioning.current_version).to match(/^1.0.2-1\-g\h{8}$/)
+          expect(Versioning.current_version).to match(/^1\.0\.2-1-g\h{8}$/)
         end
       end
 
@@ -119,14 +119,14 @@ describe Versioning do
         context 'in files tracked by git' do
           it 'returns a pre-release version with a dirty tag' do
             create_uncomitted_changes('tracked_file')
-            expect(Versioning.current_version).to match(/^1.0.2-1\-g\h{8}-dirty$/)
+            expect(Versioning.current_version).to match(/^1\.0\.2-1-g\h{8}-dirty$/)
           end
         end
 
         context 'in files not tracked by git' do
           it 'returns a pre-release version without a dirty tag' do
             File.write('some_untracked_file', 'Dummy content')
-            expect(Versioning.current_version).to match(/^1.0.2-1\-g\h{8}$/)
+            expect(Versioning.current_version).to match(/^1\.0\.2-1-g\h{8}$/)
           end
         end
       end
@@ -139,14 +139,14 @@ describe Versioning do
 
       context 'when there are no uncommitted changes' do
         it 'returns just the release version' do
-          expect(Versioning.current_version).to match(/^1.0.2$/)
+          expect(Versioning.current_version).to match(/^1\.0\.2$/)
         end
       end
 
       context 'when there are uncommitted changes' do
         it 'returns the release version with a dirty tag' do
           create_uncomitted_changes('tracked_file')
-          expect(Versioning.current_version).to match(/^1.0.2-dirty$/)
+          expect(Versioning.current_version).to match(/^1\.0\.2-dirty$/)
         end
       end
     end
