@@ -7,9 +7,17 @@ class Versioning
   class << self
     def current_version
       verify_git!
-      version=`git describe --tags --abbrev=8 --dirty 2> /dev/null`.strip
-      verify_semver_tag!(version)
-      version.delete_prefix!('v')
+
+      git_describe_version=`git describe --tags --abbrev=8 --dirty 2> /dev/null`.strip
+      unless git_describe_version =~ GIT_SEMVER_REGEX
+        if git_describe_version.include?('+')
+          raise('A git tag version including plus elements is not supported!')
+        else
+          raise('A git tag with an semantic version is required!')
+        end
+      end
+
+      version = git_describe_version.delete_prefix('v')
       if pre_release_version?(version)
         split_pre_release_identifiers(version)
       else
@@ -26,16 +34,6 @@ class Versioning
 
       unless git_dir?
         raise("The current directory `#{Dir.pwd}` is not a git work tree!")
-      end
-    end
-    
-    def verify_semver_tag!(version)
-      unless version =~ GIT_SEMVER_REGEX
-        if version.include?('+')
-          raise('A git tag version including plus elements is not supported!')
-        else
-          raise('A git tag with an semantic version is required!')
-        end
       end
     end
 
