@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Based on https://semver.org/#semantic-versioning-200 but we do support the common `v` prefix in front and do not allow plus elements like `1.0.0+gold`
-GIT_SEMVER_REGEX=/^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$/
+SUPPORTED_VERSION_FORMAT=/^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$/
 
 class Versioning
   class << self
@@ -9,7 +9,7 @@ class Versioning
       verify_git!
 
       git_describe_version=`git describe --tags --abbrev=8 --dirty 2> /dev/null`.strip
-      unless git_describe_version =~ GIT_SEMVER_REGEX
+      unless git_describe_version =~ SUPPORTED_VERSION_FORMAT
         if git_describe_version.include?('+')
           raise('A git tag version including plus elements is not supported!')
         else
