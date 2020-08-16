@@ -7,8 +7,8 @@ else
     EXCEPTIONS="127\.0\.0\.1|localhost"
 fi
 
-if [ "$(git grep -P "http://(?!${EXCEPTIONS})" | wc -l)" -gt 0 ]; then
+if [ "$(git grep --untracked -P "http://(?!${EXCEPTIONS})" -- ':(exclude)httplint.sh' | wc -l)" -gt 0 ]; then
     echo "URLS should not start with 'http://' (with excepted domains listed in ${HTTP_EXCEPTIONS})"
-    git grep -P "http://(?!${EXCEPTIONS})"
+    git grep --untracked -P "http://(?!${EXCEPTIONS})" -- ':(exclude)httplint.sh'
     exit 1
 fi
