@@ -31,68 +31,68 @@ describe Versioning do
       end
     end
   end
-  
+
   describe '.current_version' do
     context 'when git does not exist' do
       it 'raises an error' do
         # Assuming that git is always there when running rspec
         allow(File).to receive(:executable?).and_return(false)
-        expect {
+        expect do
           Versioning.current_version
-        }.to raise_error(StandardError, /The command `git` does not exist!/)
+        end.to raise_error(StandardError, /The command `git` does not exist!/)
       end
     end
 
     context 'when current dir is not a git work tree' do
       it 'raises an error' do
-        expect {
+        expect do
           Versioning.current_version
-        }.to raise_error(StandardError, /The current directory `#{Dir.getwd}` is not a git work tree!/)
+        end.to raise_error(StandardError, /The current directory `#{Dir.getwd}` is not a git work tree!/)
       end
     end
 
     context 'when current dir is a git work tree"' do
       it 'does not raise' do
         create_git_dir_with_tag('v0.0.1')
-        expect {
+        expect do
           Versioning.current_version
-        }.to_not raise_error
+        end.to_not raise_error
       end
     end
-    
+
     context 'when the current tag is a semver version' do
       it 'does not raise an error' do
         create_git_dir_with_tag('v0.0.1')
-        expect {
+        expect do
           Versioning.current_version
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
 
     context 'when the current tag is a not a semver version' do
       it 'raises an error' do
         create_git_dir_with_tag('some_tag')
-        expect {
+        expect do
           Versioning.current_version
-        }.to raise_error(StandardError, /A git tag with an semantic version is required!/)
+        end.to raise_error(StandardError, /A git tag with an semantic version is required!/)
       end
     end
 
     context 'when no git tag exists' do
       it 'raises with the same error message' do
         `git init`
-        expect {
+        expect do
           Versioning.current_version
-        }.to raise_error(StandardError, /A git tag with an semantic version is required!/)
+        end.to raise_error(StandardError, /A git tag with an semantic version is required!/)
       end
     end
 
     context 'when the current tag is a semver tag with a `+` element' do
       it 'raise with an error that this not supported' do
         create_git_dir_with_tag('1.0.2+gold')
-        expect {
+        expect do
           Versioning.current_version
-        }.to raise_error(StandardError, /A git tag version including plus elements is not supported!/)
+        end.to raise_error(StandardError, /A git tag version including plus elements is not supported!/)
       end
     end
 
