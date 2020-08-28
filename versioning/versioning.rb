@@ -1,5 +1,16 @@
 #!/usr/bin/env ruby
 
+require 'optparse'
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = "Usage: #{$PROGRAM_NAME} [options]"
+
+  opts.on('--next [TYPE]', String, 'Prints the next version. Possible values are "major", "minor" or "patch".') do |type|
+    options[:next_type] = type
+  end
+end.parse!
+
 # Based on https://semver.org/#semantic-versioning-200 but we do support the
 # common `v` prefix in front and do not allow plus elements like `1.0.0+gold`.
 SUPPORTED_VERSION_FORMAT = /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$/.freeze
@@ -19,11 +30,28 @@ class Versioning
       end
 
       version = git_describe_version.delete_prefix('v')
-      if pre_release_version?(version)
-        split_pre_release_identifiers(version)
+      version = split_pre_release_identifiers(version) if pre_release_version?(version)
+
+      version
+    end
+
+    def next(current_version, type)
+      parts = parts(current_version)
+      case type
+      when 'patch'
+        parts[:patch] += 1
+      when 'minor'
+        parts[:minor] += 1
+        parts[:patch] = 0
+      when 'major'
+        parts[:major] += 1
+        parts[:minor] = 0
+        parts[:patch] = 0
       else
-        version
+        raise("Invalid next type #{type}")
       end
+      # The next version only has the major, minor and patch parts.
+      "#{parts[:major]}.#{parts[:minor]}.#{parts[:patch]}"
     end
 
     private
@@ -64,8 +92,21 @@ class Versioning
         version.gsub(/^(.*)-(\d+)-(g\h{8}(-dirty)?)$/, '\1-\2.\3')
       end
     end
+
+    def parts(version)
+      {
+        major: version[/^([0-9]+)\.[0-9]+\.[0-9]+.*/, 1].to_i,
+        minor: version[/^[0-9]+\.([0-9]+)\.[0-9]+.*/, 1].to_i,
+        patch: version[/^[0-9]+\.[0-9]+\.([0-9]+).*/, 1].to_i,
+        tail: version[/^[0-9]+\.[0-9]+\.[0-9]+(.*)/, 1]
+      }
+    end
   end
 end
 
 # Do not print version during rspec run.
-puts Versioning.current_version if __FILE__ == $0
+if __FILE__ == $PROGRAM_NAME
+  version = Versioning.current_version
+  version = Versioning.next(version, options[:next_type]) unless options[:next_type].nil?
+  puts version
+end
