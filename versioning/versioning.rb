@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
-# Based on https://semver.org/#semantic-versioning-200 but we do support the common `v` prefix in front and do not allow plus elements like `1.0.0+gold`
+# Based on https://semver.org/#semantic-versioning-200 but we do support the
+# common `v` prefix in front and do not allow plus elements like `1.0.0+gold`.
 SUPPORTED_VERSION_FORMAT = /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$/.freeze
 
 class Versioning
@@ -48,9 +49,9 @@ class Versioning
     end
 
     def additional_pre_release_identifier?(version)
-      # For example `v2.4.0-alpha-5-gcbc89373-dirty` has the additional
+      # For example, `v2.4.0-alpha-5-gcbc89373-dirty` has the additional
       # pre-release identifier `alpha` while `v2.4.0-5-gcbc89373-dirty`
-      # has only the default git pre-release identifiers
+      # has only the default git pre-release identifiers.
       version =~ /^[\d.]+-[\w.]+-\d+-g\h{8}(-dirty)?$/
     end
 
@@ -66,5 +67,5 @@ class Versioning
   end
 end
 
-# Do not print version during rspec run
+# Do not print version during rspec run.
 puts Versioning.current_version if __FILE__ == $0
