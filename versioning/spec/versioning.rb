@@ -203,4 +203,28 @@ describe Versioning do
       end
     end
   end
+
+  describe '.next' do
+    before(:each) do
+      create_git_dir_with_tag('v10.200.5')
+    end
+
+    context 'when patch is used' do
+      it 'calculates the next patch version' do
+        expect(Versioning.next(Versioning.current_version, 'patch')).to eq('10.200.6')
+      end
+    end
+
+    context 'when minor is used' do
+      it 'calculates the next minor version' do
+        expect(Versioning.next(Versioning.current_version, 'minor')).to eq('10.201.0')
+      end
+    end
+
+    context 'when major is used' do
+      it 'calculates the next major version' do
+        expect(Versioning.next(Versioning.current_version, 'major')).to eq('11.0.0')
+      end
+    end
+  end
 end
