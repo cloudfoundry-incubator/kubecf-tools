@@ -1,19 +1,20 @@
 #!/usr/bin/env ruby
 
-# Based on https://semver.org/#semantic-versioning-200 but we do support the common `v` prefix in front and do not allow plus elements like `1.0.0+gold`
-SUPPORTED_VERSION_FORMAT=/^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$/
+# Based on https://semver.org/#semantic-versioning-200 but we do support the
+# common `v` prefix in front and do not allow plus elements like `1.0.0+gold`.
+SUPPORTED_VERSION_FORMAT = /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$/.freeze
 
 class Versioning
   class << self
     def current_version
       verify_git!
 
-      git_describe_version=`git describe --tags --abbrev=8 --dirty 2> /dev/null`.strip
+      git_describe_version = `git describe --tags --abbrev=8 --dirty 2> /dev/null`.strip
       unless git_describe_version =~ SUPPORTED_VERSION_FORMAT
         if git_describe_version.include?('+')
           raise('A git tag version including plus elements is not supported!')
         else
-          raise('A git tag with an semantic version is required!')
+          raise('A git tag with a semantic version is required!')
         end
       end
 
@@ -28,17 +29,13 @@ class Versioning
     private
 
     def verify_git!
-      unless git_exists?
-        raise('The command `git` does not exist!')
-      end
+      raise('The command `git` does not exist!') unless git_exists?
 
-      unless git_dir?
-        raise("The current directory `#{Dir.pwd}` is not a git work tree!")
-      end
+      raise("The current directory `#{Dir.pwd}` is not a git work tree!") unless git_dir?
     end
 
     def git_dir?
-      system('git rev-parse --is-inside-work-tree', [:out, :err] => File::NULL)
+      system('git rev-parse --is-inside-work-tree', %i[out err] => File::NULL)
     end
 
     def git_exists?
@@ -52,9 +49,9 @@ class Versioning
     end
 
     def additional_pre_release_identifier?(version)
-      # For example `v2.4.0-alpha-5-gcbc89373-dirty` has the additional
+      # For example, `v2.4.0-alpha-5-gcbc89373-dirty` has the additional
       # pre-release identifier `alpha` while `v2.4.0-5-gcbc89373-dirty`
-      # has only the default git pre-release identifiers
+      # has only the default git pre-release identifiers.
       version =~ /^[\d.]+-[\w.]+-\d+-g\h{8}(-dirty)?$/
     end
 
@@ -70,7 +67,5 @@ class Versioning
   end
 end
 
-# Do not print version during rspec run
-if __FILE__ == $0
-  puts Versioning.current_version
-end
+# Do not print version during rspec run.
+puts Versioning.current_version if __FILE__ == $0

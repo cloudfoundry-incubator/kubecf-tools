@@ -12,3 +12,11 @@ If the latest commit does not have a semver tag, then a pre-release version is p
 `<latest-released-version>-[<additional-pre-release-identifier>.]<commits-since-release>.g<small-latest-git-sha>[-<dirty-tag>]`
 
 For example: `1.0.2-5.gb3f7a0c1-dirty`; or if there are additional pre-release identifiers in the git tag: `1.0.2-alpha.5.gb3f7a0c1-dirty`.
+
+## Testing
+
+1. Use `bundle install` to update dependencies.
+2. Run `rspec`:
+```shell
+bundle exec rspec spec/versioning.rb
+```
