@@ -14,7 +14,7 @@ class Versioning
         if git_describe_version.include?('+')
           raise('A git tag version including plus elements is not supported!')
         else
-          raise('A git tag with an semantic version is required!')
+          raise('A git tag with a semantic version is required!')
         end
       end
 

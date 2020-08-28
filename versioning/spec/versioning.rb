@@ -74,7 +74,7 @@ describe Versioning do
         create_git_dir_with_tag('some_tag')
         expect do
           Versioning.current_version
-        end.to raise_error(StandardError, /A git tag with an semantic version is required!/)
+        end.to raise_error(StandardError, /A git tag with a semantic version is required!/)
       end
     end
 
@@ -83,7 +83,7 @@ describe Versioning do
         `git init`
         expect do
           Versioning.current_version
-        end.to raise_error(StandardError, /A git tag with an semantic version is required!/)
+        end.to raise_error(StandardError, /A git tag with a semantic version is required!/)
       end
     end
 
