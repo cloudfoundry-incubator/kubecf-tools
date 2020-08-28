@@ -48,7 +48,7 @@ class Versioning
         parts[:minor] = 0
         parts[:patch] = 0
       else
-        raise("Invalid next type #{type}")
+        raise("Invalid --next type '#{type}'. Valid values are 'major', 'minor' or 'patch'")
       end
       # The next version only has the major, minor and patch parts.
       "#{parts[:major]}.#{parts[:minor]}.#{parts[:patch]}"
