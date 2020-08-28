@@ -7,7 +7,7 @@ semver sorting.
 It requires the latest tag of the current branch to be a semantic version, otherwise it raises an exception.
 Semantic versions with plus elements like `1.0.2+gold` are not supported and also raise an exception.
 
-If the latest commit does not point to a semver tag, then a pre-release version is printed.
+If the latest commit does not have a semver tag, then a pre-release version is printed.
 
 `<latest-released-version>-[<additional-pre-release-identifier>.]<commits-since-release>.g<small-latest-git-sha>[-<dirty-tag>]`
 
