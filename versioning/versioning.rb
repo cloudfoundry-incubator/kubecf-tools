@@ -3,13 +3,24 @@
 require 'optparse'
 
 options = {}
-OptionParser.new do |opts|
+option_parser = OptionParser.new do |opts|
   opts.banner = "Usage: #{$PROGRAM_NAME} [options]"
 
   opts.on('--next [TYPE]', String, 'Prints the next version. Possible values are "major", "minor" or "patch".') do |type|
+    if type.nil?
+      warn('ERROR: Invalid empty value for --next')
+      puts option_parser.help
+      exit 1
+    elsif !%w[major minor patch].include? type
+      warn("ERROR: Invalid --next type '#{type}'")
+      puts option_parser.help
+      exit 1
+    end
     options[:next_type] = type
   end
-end.parse!
+end
+
+option_parser.parse!
 
 # Based on https://semver.org/#semantic-versioning-200 but we do support the
 # common `v` prefix in front and do not allow plus elements like `1.0.0+gold`.
@@ -47,8 +58,6 @@ class Versioning
         parts[:major] += 1
         parts[:minor] = 0
         parts[:patch] = 0
-      else
-        raise("Invalid --next type '#{type}'. Valid values are 'major', 'minor' or 'patch'")
       end
       # The next version only has the major, minor and patch parts.
       "#{parts[:major]}.#{parts[:minor]}.#{parts[:patch]}"
