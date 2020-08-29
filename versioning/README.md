@@ -1,4 +1,4 @@
-## Versioning
+# Versioning
 
 This package contains a script that prints the semantic version of the current git commit to stdout.
 
