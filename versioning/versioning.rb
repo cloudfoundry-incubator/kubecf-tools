@@ -2,25 +2,27 @@
 
 require 'optparse'
 
-options = {}
-option_parser = OptionParser.new do |opts|
-  opts.banner = "Usage: #{$PROGRAM_NAME} [options]"
+def parse_options
+  options = {}
+  option_parser = OptionParser.new do |opts|
+    opts.banner = "Usage: #{$PROGRAM_NAME} [options]"
 
-  opts.on('--next [TYPE]', String, 'Prints the next version. Possible values are "major", "minor" or "patch".') do |type|
-    if type.nil?
-      warn('ERROR: Invalid empty value for --next')
-      puts option_parser.help
-      exit 1
-    elsif !%w[major minor patch].include? type
-      warn("ERROR: Invalid --next type '#{type}'")
-      puts option_parser.help
-      exit 1
+    opts.on('--next [TYPE]', String, 'Prints the next version. Possible values are "major", "minor" or "patch".') do |type|
+      if type.nil?
+        warn('ERROR: Invalid empty value for --next')
+        puts option_parser.help
+        exit 1
+      elsif !%w[major minor patch].include? type
+        warn("ERROR: Invalid --next type '#{type}'")
+        puts option_parser.help
+        exit 1
+      end
+      options[:next_type] = type
     end
-    options[:next_type] = type
   end
+  option_parser.parse!
+  options
 end
-
-option_parser.parse!
 
 # Based on https://semver.org/#semantic-versioning-200 but we do support the
 # common `v` prefix in front and do not allow plus elements like `1.0.0+gold`.
@@ -114,7 +116,8 @@ class Versioning
 end
 
 # Do not print version during rspec run.
-if __FILE__ == $PROGRAM_NAME
+if $PROGRAM_NAME == __FILE__
+  options = parse_options
   version = Versioning.current_version
   version = Versioning.next(version, options[:next_type]) unless options[:next_type].nil?
   puts version
