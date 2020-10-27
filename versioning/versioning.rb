@@ -34,7 +34,7 @@ class Versioning
     def current_version
       verify_git!
 
-      version = `git describe --tags --abbrev=0`.strip.split[0]
+      version = `git describe --tags --abbrev=0`.strip
       if `git tag --points-at HEAD`.strip.empty?
         git_commit_timestamp = `git show --no-patch --format="%ci" HEAD`.strip
         # Parse and return in UTC.
