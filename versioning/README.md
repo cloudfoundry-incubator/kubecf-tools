@@ -3,20 +3,19 @@
 This package contains a script that prints the semantic version of the current
 git commit to stdout.
 
-This script is a wrapper around the functionality of
-`git describe --tags --dirty` with small changes to split the git pre-release
-identifiers to allow semver sorting. It requires the latest tag of the current
-branch to be a semantic version, otherwise it raises an exception. Semantic
-versions with plus elements like `1.0.2+gold` are not supported and also raise
-an exception.
+This script requires the latest tag of the current branch to be a semantic
+version, otherwise it raises an exception. Semantic versions with plus elements
+like `1.0.2+gold` are not supported and also raise an exception.
 
-If the latest commit does not have a semver tag, then a pre-release version is
-printed.
+If the latest tag in the current branch points to HEAD, no pre-release version
+information is added. Otherwise,
+`<commit_timestamp>.<branch_commit_count>.g<commit_short_hash>` is appended to
+the version string. `<commit_timestamp>` is in the format `yyyymmddHHMMSS`.
 
-`<latest-released-version>-[<additional-pre-release-identifier>.]<commits-since-release>.g<small-latest-git-sha>[-<dirty-tag>]`
+If there are uncommitted changes to the source tree, the `-dirty` string is
+appended to the final version string.
 
-For example: `1.0.2-5.gb3f7a0c1-dirty`; or if there are additional pre-release
-identifiers in the git tag: `1.0.2-alpha.5.gb3f7a0c1-dirty`.
+For example: `1.2.0-20201027184820.3186.g4fc2e9e5-dirty`.
 
 ## Calculating the next version
 
