@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'date'
 require 'optparse'
 
 def parse_options
@@ -33,8 +34,21 @@ class Versioning
     def current_version
       verify_git!
 
-      git_describe_version = `git describe --tags --abbrev=8 --dirty 2> /dev/null`.strip
-      unless git_describe_version =~ SUPPORTED_VERSION_FORMAT
+      version = `git describe --tags --abbrev=0`.strip.split[0]
+      if `git tag --points-at HEAD`.strip.empty?
+        git_commit_timestamp = `git show --no-patch --format="%ci" HEAD`.strip
+        # Parse and return in UTC.
+        git_commit_timestamp = DateTime.parse(git_commit_timestamp).new_offset
+        git_commit_timestamp = git_commit_timestamp.strftime("%Y%m%d%H%M%S")
+
+        git_number_commits = `git rev-list --count HEAD`.strip
+        git_commit_short_hash = `git rev-parse --short HEAD`.strip
+
+        # Here we add `g` to the short hash to match git describe.
+        version = "#{version}-#{git_commit_timestamp}.#{git_number_commits}.g#{git_commit_short_hash}"
+      end
+      version = "#{version}-dirty" unless `git status --short`.strip.empty?
+      unless version =~ SUPPORTED_VERSION_FORMAT
         if git_describe_version.include?('+')
           raise('A git tag version including plus elements is not supported!')
         else
@@ -42,9 +56,7 @@ class Versioning
         end
       end
 
-      version = git_describe_version.delete_prefix('v')
-      version = split_pre_release_identifiers(version) if pre_release_version?(version)
-
+      version = version.delete_prefix('v')
       version
     end
 
@@ -80,27 +92,6 @@ class Versioning
     def git_exists?
       ENV['PATH'].split(File::PATH_SEPARATOR).any? do |directory|
         File.executable?(File.join(directory, 'git'))
-      end
-    end
-
-    def pre_release_version?(version)
-      version =~ /-g\h{8}(-dirty)?$/
-    end
-
-    def additional_pre_release_identifier?(version)
-      # For example, `v2.4.0-alpha-5-gcbc89373-dirty` has the additional
-      # pre-release identifier `alpha` while `v2.4.0-5-gcbc89373-dirty`
-      # has only the default git pre-release identifiers.
-      version =~ /^[\d.]+-[\w.]+-\d+-g\h{8}(-dirty)?$/
-    end
-
-    def split_pre_release_identifiers(version)
-      if additional_pre_release_identifier?(version)
-        # e.g. v2.4.0-alpha.1-5-gcbc89373-dirty -> v2.4.0-alpha.1.5.gcbc89373-dirty
-        version.gsub(/^([\d.]+)-(.*)-(\d+)-(g\h{8}(-dirty)?)$/, '\1-\2.\3.\4')
-      else
-        # e.g. v2.4.0-5-gcbc89373-dirty -> v2.4.0-5.gcbc89373-dirty
-        version.gsub(/^(.*)-(\d+)-(g\h{8}(-dirty)?)$/, '\1-\2.\3')
       end
     end
 
