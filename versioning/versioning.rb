@@ -54,7 +54,9 @@ class Versioning
         git_commit_timestamp = DateTime.parse(git_commit_timestamp).new_offset
         git_commit_timestamp = git_commit_timestamp.strftime("%Y%m%d%H%M%S")
 
-        git_number_commits = `git rev-list --count HEAD`.strip
+        # The number of commits since last tag that points to a commits in the
+        # branch.
+        git_number_commits = `git rev-list --count #{version}..HEAD`.strip
 
         # Add `g` to the short hash to match git describe.
         git_commit_short_hash = `git rev-parse --short HEAD`.strip
