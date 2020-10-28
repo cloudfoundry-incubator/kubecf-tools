@@ -59,7 +59,7 @@ class Versioning
         git_number_commits = `git rev-list --count #{version}..HEAD`.strip
 
         # Add `g` to the short hash to match git describe.
-        git_commit_short_hash = `git rev-parse --short HEAD`.strip
+        git_commit_short_hash = `git rev-parse --short=8 HEAD`.strip
         git_commit_short_hash = "g#{git_commit_short_hash}"
 
         # The version gets assembled with the pre-release part.
