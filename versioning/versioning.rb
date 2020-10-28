@@ -34,27 +34,38 @@ class Versioning
     def current_version
       verify_git!
 
-      version = `git describe --tags --abbrev=0`.strip
-      if `git tag --points-at HEAD`.strip.empty?
-        git_commit_timestamp = `git show --no-patch --format="%ci" HEAD`.strip
-        # Parse and return in UTC.
-        git_commit_timestamp = DateTime.parse(git_commit_timestamp).new_offset
-        git_commit_timestamp = git_commit_timestamp.strftime("%Y%m%d%H%M%S")
+      tag = `git describe --tags --abbrev=0`.strip
 
-        git_number_commits = `git rev-list --count HEAD`.strip
-        git_commit_short_hash = `git rev-parse --short HEAD`.strip
-
-        # Here we add `g` to the short hash to match git describe.
-        version = "#{version}-#{git_commit_timestamp}.#{git_number_commits}.g#{git_commit_short_hash}"
-      end
-      version = "#{version}-dirty" unless `git status --short`.strip.empty?
-      unless version =~ SUPPORTED_VERSION_FORMAT
-        if git_describe_version.include?('+')
+      unless tag =~ SUPPORTED_VERSION_FORMAT
+        if tag.include?('+')
           raise('A git tag version including plus elements is not supported!')
         else
           raise('A git tag with a semantic version is required!')
         end
       end
+
+      # Version starts being the last tag that points to a commit in the branch,
+      # then it gets mutated based on a series of constraints.
+      version = tag
+      # If the tag doesn't point to HEAD, it's a pre-release.
+      if `git tag --points-at HEAD`.strip.empty?
+        # The commit timestamp should be in the format yyyymmddHHMMSS in UTC.
+        git_commit_timestamp = `git show --no-patch --format="%ci" HEAD`.strip
+        git_commit_timestamp = DateTime.parse(git_commit_timestamp).new_offset
+        git_commit_timestamp = git_commit_timestamp.strftime("%Y%m%d%H%M%S")
+
+        git_number_commits = `git rev-list --count HEAD`.strip
+
+        # Add `g` to the short hash to match git describe.
+        git_commit_short_hash = `git rev-parse --short HEAD`.strip
+        git_commit_short_hash = "g#{git_commit_short_hash}"
+
+        # The version gets assembled with the pre-release part.
+        version = "#{version}-#{git_commit_timestamp}.#{git_number_commits}.#{git_commit_short_hash}"
+      end
+      # If there's a change in the source tree that didn't get committed, append
+      # `-dirty` to the version string.
+      version = "#{version}-dirty" unless `git status --short`.strip.empty?
 
       version = version.delete_prefix('v')
       version
