@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'date'
 require 'optparse'
 
 def parse_options
@@ -33,18 +34,42 @@ class Versioning
     def current_version
       verify_git!
 
-      git_describe_version = `git describe --tags --abbrev=8 --dirty 2> /dev/null`.strip
-      unless git_describe_version =~ SUPPORTED_VERSION_FORMAT
-        if git_describe_version.include?('+')
+      tag = `git describe --tags --abbrev=0`.strip
+
+      unless tag =~ SUPPORTED_VERSION_FORMAT
+        if tag.include?('+')
           raise('A git tag version including plus elements is not supported!')
         else
           raise('A git tag with a semantic version is required!')
         end
       end
 
-      version = git_describe_version.delete_prefix('v')
-      version = split_pre_release_identifiers(version) if pre_release_version?(version)
+      # Version starts being the last tag that points to a commit in the branch,
+      # then it gets mutated based on a series of constraints.
+      version = tag
+      # If the tag doesn't point to HEAD, it's a pre-release.
+      if `git tag --points-at HEAD`.strip.empty?
+        # The commit timestamp should be in the format yyyymmddHHMMSS in UTC.
+        git_commit_timestamp = `git show --no-patch --format="%ci" HEAD`.strip
+        git_commit_timestamp = DateTime.parse(git_commit_timestamp).new_offset
+        git_commit_timestamp = git_commit_timestamp.strftime("%Y%m%d%H%M%S")
 
+        # The number of commits since last tag that points to a commits in the
+        # branch.
+        git_number_commits = `git rev-list --count #{version}..HEAD`.strip
+
+        # Add `g` to the short hash to match git describe.
+        git_commit_short_hash = `git rev-parse --short=8 HEAD`.strip
+        git_commit_short_hash = "g#{git_commit_short_hash}"
+
+        # The version gets assembled with the pre-release part.
+        version = "#{version}-#{git_commit_timestamp}.#{git_number_commits}.#{git_commit_short_hash}"
+      end
+      # If there's a change in the source tree that didn't get committed, append
+      # `-dirty` to the version string.
+      version = "#{version}-dirty" unless `git status --short`.strip.empty?
+
+      version = version.delete_prefix('v')
       version
     end
 
@@ -80,27 +105,6 @@ class Versioning
     def git_exists?
       ENV['PATH'].split(File::PATH_SEPARATOR).any? do |directory|
         File.executable?(File.join(directory, 'git'))
-      end
-    end
-
-    def pre_release_version?(version)
-      version =~ /-g\h{8}(-dirty)?$/
-    end
-
-    def additional_pre_release_identifier?(version)
-      # For example, `v2.4.0-alpha-5-gcbc89373-dirty` has the additional
-      # pre-release identifier `alpha` while `v2.4.0-5-gcbc89373-dirty`
-      # has only the default git pre-release identifiers.
-      version =~ /^[\d.]+-[\w.]+-\d+-g\h{8}(-dirty)?$/
-    end
-
-    def split_pre_release_identifiers(version)
-      if additional_pre_release_identifier?(version)
-        # e.g. v2.4.0-alpha.1-5-gcbc89373-dirty -> v2.4.0-alpha.1.5.gcbc89373-dirty
-        version.gsub(/^([\d.]+)-(.*)-(\d+)-(g\h{8}(-dirty)?)$/, '\1-\2.\3.\4')
-      else
-        # e.g. v2.4.0-5-gcbc89373-dirty -> v2.4.0-5.gcbc89373-dirty
-        version.gsub(/^(.*)-(\d+)-(g\h{8}(-dirty)?)$/, '\1-\2.\3')
       end
     end
 
